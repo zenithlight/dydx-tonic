@@ -3,6 +3,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use glob::glob;
 use tonic_build;
+use syn::{Item};
+use prettyplease::unparse;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let current_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
@@ -16,8 +18,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .status()
         .expect("Failed to run Make target");
 
-    let _ = fs::remove_dir_all("gen"); // ignore the error in case the directory doesn't already exist
-    fs::create_dir_all("gen/src")?;
+    std::fs::remove_dir_all("gen")?;
+    std::fs::create_dir_all("gen/src")?;
 
     // prost (used by tonic-build) can't expand globs, so we have to glob and list protos ourselves
     // See https://github.com/tokio-rs/prost/issues/469
@@ -29,8 +31,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::configure()
         .include_file("lib.rs")
         .out_dir("gen/src")
-        .build_server(false)
+        .extern_path(".cosmos", "::cosmos_sdk_proto::cosmos")
         .compile(&protos, &[proto_export_dir])?;
+
+    // Patch the syntax tree in lib.rs to make dydxprotocol the top level export
+    let file_path = "gen/src/lib.rs";
+    let content = fs::read_to_string(file_path).expect("Failed to read file");
+    let syntax_tree = syn::parse_file(&content).expect("Failed to parse Rust file");
+
+    // Find the AST node representing the dydxprotocol module
+    let dydxprotocol_module = syntax_tree.items.into_iter().find(|item|
+        if let Item::Mod(item_mod) = item {
+            item_mod.ident.to_string() == "dydxprotocol"
+        } else {
+            false
+        }
+    );
+
+    if let Some(Item::Mod(dydxprotocol_module)) = dydxprotocol_module {
+        if let Some((_, items)) = dydxprotocol_module.content {
+            let modified_syntax_tree = syn::File {
+                shebang: None,
+                attrs: Vec::new(),
+                items: items,
+            };
+
+            fs::write(file_path, unparse(&modified_syntax_tree)).expect("Failed to write modified file");
+        }
+    }
 
     // Copy Cargo manifest into /gen directory
     fs::copy("src/Cargo.toml.tpl", "gen/Cargo.toml")?;

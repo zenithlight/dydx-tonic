@@ -40,6 +40,8 @@ name = "dydx-tonic-gen"
 version = "0.1.0"
 dependencies = [
  "glob",
+ "prettyplease",
+ "syn",
  "tonic-build",
 ]
 
