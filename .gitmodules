@@ -1,0 +1,3 @@
+[submodule "v4-chain"]
+	path = v4-chain
+	url = https://github.com/dydxprotocol/v4-chain.git
