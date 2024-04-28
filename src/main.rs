@@ -16,8 +16,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .status()
         .expect("Failed to run Make target");
 
-    let _ = std::fs::remove_dir_all("gen"); // ignore the error in case the directory doesn't already exist
-    std::fs::create_dir_all("gen/src")?;
+    let _ = fs::remove_dir_all("gen"); // ignore the error in case the directory doesn't already exist
+    fs::create_dir_all("gen/src")?;
 
     // prost (used by tonic-build) can't expand globs, so we have to glob and list protos ourselves
     // See https://github.com/tokio-rs/prost/issues/469
