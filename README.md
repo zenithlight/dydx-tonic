@@ -4,11 +4,13 @@
 
 ## Installation
 
-To use `dydx-tonic` in your Rust project, add `dydx-tonic`, along with its peer dependencies `tokio` and `tonic` to your `Cargo.toml` file:
+To generate the crate ensure [protoc](https://grpc.io/docs/protoc-installation/) is installed. Then `cargo run` and the client crate will be present in `/gen`.
+
+To use `dydx-tonic` in your Rust project, add the path to the generated crate, along with its peer dependencies `tokio` and `tonic` to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-dydx-tonic = "0.1.0"
+dydx-tonic = { path = "../dydx-tonic/gen" }
 tokio = { version = "1.37.0", features = ["full"] }
 tonic = "0.11.0"
 ```
@@ -46,7 +48,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 ```
-
-## Development
-
-To run code generation ensure [buf](https://buf.build/docs/installation) is on your path. Then `cargo run` and the client crate will be present in `/gen`.
