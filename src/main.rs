@@ -30,6 +30,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .include_file("lib.rs")
         .out_dir("gen/src")
         .build_server(false)
+        .type_attribute("dydxprotocol.indexer.protocol.v1.IndexerOrderId", "#[derive(Eq, Hash)]")
+        .type_attribute("dydxprotocol.indexer.protocol.v1.IndexerSubaccountId", "#[derive(Eq, Hash)]")
         .compile(&protos, &[proto_export_dir])?;
 
     // Copy Cargo manifest into /gen directory
